@@ -6,7 +6,7 @@ import pandas as pd
 from torchvision.io import read_image
 from torch.utils.data import Dataset, DataLoader
 import matplotlib.pyplot as plt 
-
+import numpy as np
 
 class RefCOCOg(Dataset):
 
@@ -18,7 +18,7 @@ class RefCOCOg(Dataset):
         self.loadAnnotations()
 
     def __len__(self):
-        return len(self.annotations.shape[0])
+        return self.annotations.shape[0]
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.annotations.loc[idx, "file_name"])
@@ -63,5 +63,6 @@ class RefCOCOg(Dataset):
 if __name__ == '__main__':
 
     dataloader = RefCOCOg("/home/fabri/Downloads/refcocog/annotations/refs(umd).p", "/home/fabri/Downloads/refcocog/images")
-    img,sen = dataloader.__getitem__(0)
-    dataloader.plot_img(0)
+
+    random_idx = np.random.randint(0,len(dataloader))
+    dataloader.plot_img(random_idx)
