@@ -22,11 +22,16 @@ class RefCOCOg(Dataset):
           images folders of the refcocog dataset
         - test_set: when set to True this class will load the test part of the
             dataset
+        - device: either "cpu" or "cuda"
     '''
-    def __init__(self, refcocog_path, test_set):
+    def __init__(self, refcocog_path, test_set, device=None):
         self.test_set = test_set
         self.img_dir = os.path.join(refcocog_path, "images")
         self.annotations_dir = os.path.join(refcocog_path, "annotations")
+        if device is None:
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        else:
+            self.device = device
 
         # load the dataset with the annotations
         self.loadDataset()
@@ -84,7 +89,7 @@ class RefCOCOg(Dataset):
         # Group together the same images into a single sample, merging together
         # the bounding boxes and the sentences for each single object
         df.loc[:,"sentences"] = df["sentences"].apply(lambda sentences: [[s["sent"] for s in sentences]])
-        df.loc[:,"bbox"] = df["ann_id"].apply(lambda ann_id: [annotations[ann_id]["bbox"]])
+        df.loc[:,"bbox"] = df["ann_id"].apply(lambda ann_id: [self.to_xyxy(annotations[ann_id]["bbox"])])
         df = df.groupby('image_id').agg({'file_name': 'first', 'sentences': 'sum', 'bbox': 'sum'}).reset_index()
 
         self.dataset = df
@@ -106,9 +111,7 @@ class RefCOCOg(Dataset):
                 print("- %s" % sentence)
 
             # transform the [x,y,w,h] list into a tensor suited for the task
-            bbox_tensor = torch.tensor(bbox[obj])
-            bbox_tensor = box_convert(bbox_tensor, 'xywh', 'xyxy')
-            bbox_tensor = bbox_tensor.unsqueeze(0)
+            bbox_tensor = torch.tensor(bbox[obj], device=self.device).unsqueeze(0)
             image = draw_bounding_boxes(image, bbox_tensor, width=3, colors=(0,255,0))
             plt.text(bbox_tensor[:,0], bbox_tensor[:,1], f"Object %d" % obj, fontsize=12, bbox=dict(facecolor='green'))
 
@@ -120,11 +123,19 @@ class RefCOCOg(Dataset):
         plt.tight_layout()
         plt.show()
 
+    '''
+    Converts a vector of coordinates in the "xywh" format to "xyxy"
+
+    Args:
+        - bbox: a list of 4 coordinates to be converted in the "xyxy" format
+    '''
+    def to_xyxy(self, bbox):
+      bbox_tnsor = torch.tensor(bbox, device=self.device)
+      new_bbox = box_convert(bbox_tnsor, 'xywh', 'xyxy')
+      return new_bbox.tolist()
+
 
 if __name__ == '__main__':
 
     train_dataset = RefCOCOg("/home/fabri/Downloads/refcocog", test_set=False)
     test_dataset = RefCOCOg("/home/fabri/Downloads/refcocog", test_set=True)
-
-    random_idx = np.random.randint(0, len(train_dataset))
-    train_dataset.plot_img(random_idx)
