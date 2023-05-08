@@ -71,11 +71,16 @@ class RefCOCOg(Dataset):
             print(f"Could not open/read the annotations files.")
             sys.exit()
 
-        # parse the annotations, containing the bound boxes
+        # parse the annotations, containing the bounding boxes
         annotations = {}
         for ann in instances["annotations"]:
             annotations[ann["id"]] = ann
- 
+        
+        # parse the categories names of the objects(car, person, ..)
+        self.categories = {}
+        for c in instances["categories"]:
+            self.categories[c.get("id")] = c.get("name")
+
         # parse the pickle file and split it according to the test_set variable
         df = pd.DataFrame(pickle.load(f))
         if self.test_set:
@@ -90,7 +95,8 @@ class RefCOCOg(Dataset):
         # the bounding boxes and the sentences for each single object
         df.loc[:,"sentences"] = df["sentences"].apply(lambda sentences: [[s["sent"] for s in sentences]])
         df.loc[:,"bbox"] = df["ann_id"].apply(lambda ann_id: [self.to_xyxy(annotations[ann_id]["bbox"])])
-        df = df.groupby('image_id').agg({'file_name': 'first', 'sentences': 'sum', 'bbox': 'sum'}).reset_index()
+        df.loc[:,"category_id"] = df["category_id"].apply(lambda id: [id])
+        df = df.groupby('file_name').agg({'category_id': 'sum', 'sentences': 'sum', 'bbox': 'sum'}).reset_index()
 
         self.dataset = df
 
