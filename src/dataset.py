@@ -6,9 +6,10 @@ import pandas as pd
 
 import torch
 from torchvision.io import read_image
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision.utils import draw_bounding_boxes
 from torchvision.ops import box_convert
+from torchvision import transforms
 import matplotlib.pyplot as plt 
 import numpy as np
 
@@ -33,6 +34,10 @@ class RefCOCOg(Dataset):
         else:
             self.device = device
 
+        # transformation used to resize images to 640x640
+        self.resize = transforms.Resize((640, 640), antialias=False)
+        self.toRGB = transforms.Lambda(lambda x: x.repeat(3, 1, 1) if x.size(0)==1 else x) # grayscale to RGB
+        
         # load the dataset with the annotations
         self.loadDataset()
 
@@ -49,10 +54,28 @@ class RefCOCOg(Dataset):
         img_path = os.path.join(self.img_dir, self.dataset.loc[idx, "file_name"])
         
         image = read_image(img_path)
-        sentences = self.dataset.loc[idx, "sentences"]
+        sentence = self.dataset.loc[idx, "sentence"]
         bbox = self.dataset.loc[idx, "bbox"]
-       
-        return image, sentences, bbox
+
+        bbox_tensor = bbox_tensor = torch.tensor(bbox, device=self.device)
+
+        orig_width = image.shape[2]
+        orig_height = image.shape[1]
+        if orig_width != 640 or orig_height != 640:
+            image = self.resize(image)
+
+            increment_factor_x = 640/orig_width
+            increment_factor_y = 640/orig_height
+
+            # resize the bounding box
+            bbox_tensor[0] *= increment_factor_x
+            bbox_tensor[1] *= increment_factor_y
+            bbox_tensor[2] *= increment_factor_x
+            bbox_tensor[3] *= increment_factor_y
+
+        image = self.toRGB(image)
+        
+        return image, sentence, bbox_tensor
 
     '''
     Load the dataset with the annotations in the form of sentences along with
@@ -71,16 +94,11 @@ class RefCOCOg(Dataset):
             print(f"Could not open/read the annotations files.")
             sys.exit()
 
-        # parse the annotations, containing the bounding boxes
+        # parse the annotations, containing the bound boxes
         annotations = {}
         for ann in instances["annotations"]:
             annotations[ann["id"]] = ann
-        
-        # parse the categories names of the objects(car, person, ..)
-        self.categories = {}
-        for c in instances["categories"]:
-            self.categories[c.get("id")] = c.get("name")
-
+ 
         # parse the pickle file and split it according to the test_set variable
         df = pd.DataFrame(pickle.load(f))
         if self.test_set:
@@ -90,15 +108,14 @@ class RefCOCOg(Dataset):
 
         # Fix: remove from the file name the last digit after the last underscore
         df["file_name"] = df["file_name"].apply(lambda file_name: re.sub("_[0-9]+.jpg", ".jpg", file_name))
+       
+        df.loc[:,"bbox"] = df["ann_id"].apply(lambda ann_id: self.to_xyxy(annotations[ann_id]["bbox"]))
+        df.loc[:,"sentence"] = df["sentences"].apply(lambda sentences: [s["sent"] for s in sentences])
+        df = df.explode("sentence").explode("sentence")
 
-        # Group together the same images into a single sample, merging together
-        # the bounding boxes and the sentences for each single object
-        df.loc[:,"sentences"] = df["sentences"].apply(lambda sentences: [[s["sent"] for s in sentences]])
-        df.loc[:,"bbox"] = df["ann_id"].apply(lambda ann_id: [self.to_xyxy(annotations[ann_id]["bbox"])])
-        df.loc[:,"category_id"] = df["category_id"].apply(lambda id: [id])
-        df = df.groupby('file_name').agg({'category_id': 'sum', 'sentences': 'sum', 'bbox': 'sum'}).reset_index()
-
-        self.dataset = df
+        # keep only the needed columns
+        self.dataset = df.loc[:,['file_name', 'sentence', 'bbox']]
+        self.dataset.reset_index(drop=True, inplace=True)
 
     '''
     Plot the image stored at a given index in the dataset along with the objects
@@ -108,24 +125,19 @@ class RefCOCOg(Dataset):
         - idx: index of the image to plot
     '''
     def plot_img(self, idx):
-        image, sentences, bbox = self.__getitem__(idx)
+        image, sentence, bbox = self.__getitem__(idx)
         
-        num_objs = len(bbox)
-        for obj in range(num_objs):
-            print(f"================ Object %d ================" % obj)
-            for sentence in sentences[obj]:
-                print("- %s" % sentence)
-
-            # transform the [x,y,w,h] list into a tensor suited for the task
-            bbox_tensor = torch.tensor(bbox[obj], device=self.device).unsqueeze(0)
-            image = draw_bounding_boxes(image, bbox_tensor, width=3, colors=(0,255,0))
-            plt.text(bbox_tensor[:,0], bbox_tensor[:,1], f"Object %d" % obj, fontsize=12, bbox=dict(facecolor='green'))
+        # transform the [x,y,w,h] list into a tensor suited for the task
+        bbox_tensor = bbox.unsqueeze(0)
+        image = draw_bounding_boxes(image, bbox_tensor, width=3, colors=(0,255,0))
 
         # image.permute is necessary because torch returns a tensor with the
         # channel dimension in the first position. In this way the image is
         # converted by moving that dimension in the last position, i.e.
         # (3,256,256) becomes (256,256,3)
+        
         plt.imshow(image.permute(1,2,0))
+        plt.title(sentence)
         plt.tight_layout()
         plt.show()
 
@@ -145,3 +157,9 @@ if __name__ == '__main__':
 
     train_dataset = RefCOCOg("/home/fabri/Downloads/refcocog", test_set=False)
     test_dataset = RefCOCOg("/home/fabri/Downloads/refcocog", test_set=True)
+
+    train, val = random_split(train_dataset, [0.8, 0.2])
+
+    train_loader = DataLoader(train, shuffle=True, batch_size=20) 
+    val_loader = DataLoader(val, shuffle=True, batch_size=20)
+    test_loader = DataLoader(test_dataset, shuffle=False, batch_size=20)
