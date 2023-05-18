@@ -6,8 +6,8 @@ from torchvision.ops import box_convert
 from tqdm import tqdm
 
 from dataset.dataset import RefCOCOg
-from models.baseline import YoloBaseline
 from models.train_model import TrainRPN
+from models.model import RPN
 from utilities import Utilities 
 
 import matplotlib.pyplot as plt
@@ -46,6 +46,25 @@ grouped_val_dataset = RefCOCOg("/home/fabri/Downloads/refcocog", split="val", ag
 grouped_train_loader = DataLoader(grouped_train_dataset, shuffle=True, batch_size=10, collate_fn=grouped_collate_batch) 
 grouped_val_loader = DataLoader(grouped_val_dataset, shuffle=False, batch_size=10, collate_fn=grouped_collate_batch) 
 
-############################## MODEL ##############################
+############################## TRAINING ##############################
 model_trainer = TrainRPN(device=device)
 model, _, _  = model_trainer.train(num_epochs=2, train_loader=grouped_train_loader, val_loader=grouped_val_loader)
+
+torch.save(model.state_dict(), "model.pt")
+
+############################## EVALUATION ##############################
+
+model = RPN(device=device)
+model.load_state_dict(torch.load('model.pt'))
+model.train(False)
+
+def inference(image_id, count):
+  image, _, _ = test_dataset[image_id]
+  pred_bbox, _ = model.forward(image.unsqueeze(0), ground_truth_boxes=None)
+
+  modified_img = draw_bounding_boxes(image, pred_bbox[0][:count], width=2, colors=(0,255,0))
+
+  plt.imshow(modified_img.cpu().permute(1,2,0))
+  plt.show()
+
+inference(image_id=1, count=50)
