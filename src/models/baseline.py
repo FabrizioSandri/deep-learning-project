@@ -4,11 +4,6 @@ import numpy as np
 import torch
 import clip
 
-from PIL import Image
-from torchvision.io import read_image
-from torch.utils.data import Dataset, DataLoader
-from torchvision.utils import draw_bounding_boxes
-from torchvision.ops import box_convert
 from torchvision import transforms
 
 class YoloBaseline():
@@ -102,7 +97,7 @@ class YoloBaseline():
   '''
   Given as input the results returned by yolo by running inference on 'image',
   this method returns a list of images as a result of cropping them according
-  to the bounding boxes detected by YOLO
+  to the bounding boxes detected by YOLO.
 
   Args:
     - yolo_results: pandas dataframe returned by Yolo after running inference
