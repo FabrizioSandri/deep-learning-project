@@ -31,8 +31,8 @@ class RPN(torch.nn.Module):
         feature_map_channels, self.rpn_anchor_generator.num_anchors_per_location()[0]
     ).to(self.device)
 
-    rpn_pre_nms_top_n = {"training": 2000, "testing": 1000}
-    rpn_post_nms_top_n = {"training": 2000, "testing": 1000}
+    rpn_pre_nms_top_n = {"training": 2000, "testing": 1000} # number of proposals to keep before applying NMS during training and testing
+    rpn_post_nms_top_n = {"training": 2000, "testing": 1000} # number of proposals to keep after applying NMS during training and testing
     rpn_nms_thresh = 0.7
     rpn_fg_iou_thresh = 0.7
     rpn_bg_iou_thresh = 0.2

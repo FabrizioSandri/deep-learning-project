@@ -53,7 +53,7 @@ class TrainRPN():
         ground_truth_boxes = [{"boxes": boxes[batch_i]} for batch_i in range(images.shape[0])]
         
         # Make predictions for this batch
-        outputs, losses = self.model(images, ground_truth_boxes)
+        _, losses = self.model(images, ground_truth_boxes)
 
         # loss function
         losses = losses["loss_objectness"] + losses["loss_rpn_box_reg"]
@@ -77,14 +77,14 @@ class TrainRPN():
                         
           ground_truth_boxes = [{"boxes": boxes[batch_i]} for batch_i in range(images.shape[0])]
           
-          outputs, losses = self.model(images, ground_truth_boxes)
+          _, losses = self.model(images, ground_truth_boxes)
           losses = losses["loss_objectness"] + losses["loss_rpn_box_reg"]
-          valid_loss += losses.item()
+          val_loss += losses.item()
 
-        print(f'[epoch {epoch + 1}] validation loss: {valid_loss/len(val_loader):.3f}')
+        print(f'[epoch {epoch + 1}] validation loss: {val_loss/len(val_loader):.3f}')
 
       train_loss_history.append(training_loss/len(train_loader))   
-      val_loss_history.append(valid_loss/len(val_loader))
+      val_loss_history.append(val_loss/len(val_loader))
 
 
     return self.model, train_loss_history, val_loss_history
