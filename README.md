@@ -21,15 +21,38 @@ To install the Yolo dependencies, use the following command:
 $ pip install -U ultralytics
 ```
 
-## Architecture
-A high-level representation of our proposed framework. The architecture begins
-by converting an image and a textual description into a feature map and text
-embedding. This is achieved using the ResNet50 of CLIP (excluding the last
-attention layer) for the image and the text encoder of CLIP for the textual
-input. The feature map and text embedding are then jointly processed using a
-fusion module, resulting in a fused feature map. This fused feature map is
-subsequently feeded into the Region Proposal Network to generate region
-proposals that are conditioned on the textual description. The model returns the
-region with the highest score as the final outcome.
+## Project goal
+Visual grounding involves linking language and perception by grounding
+linguistic symbols in the visual world. The goal of this assignment is to build,
+fine-tune, and evaluate a deep learning framework that can perform visual
+grounding on a given dataset.
+
+The assignment focuses on training a deep learning framework for visual
+grounding using the CLIP (Contrastive Language-Image Pre-training) model as a
+foundation. CLIP is a pre-trained model that provides a starting point for
+transfer learning, allowing us to leverage its capabilities in image-text
+understanding for the visual grounding task. The objective is to fine-tune CLIP
+specifically for visual grounding, which requires predicting bounding boxes in
+images corresponding to the entities described in textual descriptions.
+
+## Dataset
+The visual grounding task utilizes the RefCOCOg dataset, a variant of the
+Referring Expression Generation (REG) dataset. It consists of approximately
+25,799 images, each with an average of 3.7 referring expressions. The dataset
+contains appearance-based descriptions independent of viewer perspective, making
+it suitable for visual grounding. Accurate bounding boxes need to be generated
+around the referred objects in the images, considering the context and visual
+properties.
+
+## ClipRPN
+In the following diagram we present a high-level representation of our proposed
+framework. The architecture begins by converting an image and a textual
+description into a feature map and text embedding. This is achieved using the
+ResNet50 of CLIP (excluding the last attention layer) for the image and the text
+encoder of CLIP for the textual input. The feature map and text embedding are
+then jointly processed using a fusion module, resulting in a fused feature map.
+This fused feature map is subsequently feeded into the Region Proposal Network
+to generate region proposals that are conditioned on the textual description.
+The model returns the region with the highest score as the final outcome.
 
 ![Architecture](./notebooks/figures/our_architecture.png)
