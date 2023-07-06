@@ -20,3 +20,16 @@ To install the Yolo dependencies, use the following command:
 ```
 $ pip install -U ultralytics
 ```
+
+## Architecture
+A high-level representation of our proposed framework. The architecture begins
+by converting an image and a textual description into a feature map and text
+embedding. This is achieved using the ResNet50 of CLIP (excluding the last
+attention layer) for the image and the text encoder of CLIP for the textual
+input. The feature map and text embedding are then jointly processed using a
+fusion module, resulting in a fused feature map. This fused feature map is
+subsequently feeded into the Region Proposal Network to generate region
+proposals that are conditioned on the textual description. The model returns the
+region with the highest score as the final outcome.
+
+![Architecture](./notebooks/figures/our_architecture.png)
