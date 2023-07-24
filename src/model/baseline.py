@@ -8,14 +8,17 @@ import matplotlib.pyplot as plt
 from torchvision import transforms
 from torchvision.ops import box_convert
 
-class Baseline():
+class Baseline(torch.nn.Module):
 
-  def __init__(self, device=None):
+  def __init__(self, test_dataset, device=None):
+    super().__init__()
+
     if device is None:
       self.device = "cuda" if torch.cuda.is_available() else "cpu"
     else:
       self.device = device
-
+    
+    self.test_dataset = test_dataset
     current_backend = matplotlib.get_backend()
 
     # models definition
@@ -79,9 +82,13 @@ class Baseline():
     xmax = res.loc[best_bbox,"xmax"]
     ymax = res.loc[best_bbox,"ymax"]
     pred_bbox = torch.tensor([xmin, ymin, xmax, ymax], device=self.device)
-    pred_class = test_dataset.name2category[res.loc[best_bbox,"name"]]
+    pred_class = self.test_dataset.name2category[res.loc[best_bbox,"name"]]
 
     return pred_bbox, pred_class
+  
+  def forward(self, image, text, gtBoxes=None):
+    res = self.inference(image[0], text[0])
+    return [[res[0]]], res[1]
 
   '''
   This method plots all the bounding boxes found by this Baseline with the
