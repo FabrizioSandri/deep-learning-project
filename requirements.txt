@@ -1,0 +1,9 @@
+ftfy
+regex
+tqdm
+torch
+torchvision
+torchmetrics
+optuna
+ultralytics
+
