@@ -21,6 +21,50 @@ To install the Yolo dependencies, use the following command:
 $ pip install -U ultralytics
 ```
 
+## Usage
+To utilize the ClipRPN framework for visual grounding on the RefCOCOg dataset, follow the instructions below:
+```
+usage: __main__.py [-h] -d PATH [-i ID] [-m {baseline,concatenation,attention}] [-b BATCH_SIZE] [-e] [-t NUM_EPOCHS]
+
+options:
+  -h, --help            show this help message and exit
+  -d PATH, --dataset PATH
+                        Location of the RefCOCOg dataset.
+  -i ID, --inference ID
+                        Specifies the image ID from the test dataset on which to perform inference. To execute the inference,
+                        it is necessary to specify the model using the `-m` option.
+  -m {baseline,concatenation,attention}, --model {baseline,concatenation,attention}
+                        Defines the type of model to be used during training. The available options are as follows: -
+                        'baseline': This option utilizes a training-free model that combines YOLO with CLIP. -
+                        'concatenation': This option uses a model that employs simple concatenation with the textual
+                        description. - 'attention': This option represents our final model, which utilizes cross attention to
+                        fuse text and images.
+  -b BATCH_SIZE, --batch_size BATCH_SIZE
+                        Batch size for the data loaders.
+  -e, --evaluate        Evaluate the following metrics for the specified model: oIOU, Recall, Cosine Similarity.
+  -t NUM_EPOCHS, --train NUM_EPOCHS
+                        Train the specified model for the specified amount of epochs.
+
+```
+
+#### Examples
+* Training: the provided command performs model training with the cross attention fusion module for 10 epochs using the RefCOCOg dataset located at `/path/to/refcocog`.
+
+```bash
+python src/__main__.py -d /path/to/refcocog -m attention -t 10
+```
+* Eevaluation: the provided command performs model evaluation with the cross attention fusion module using the test split of the RefCOCOg dataset located at `/path/to/refcocog`.
+
+```bash
+python src/__main__.py -d /path/to/refcocog -m attention -e
+```
+
+* Inference: here's an example of how to perform inference on the first image of the test dataset(id 0) and visualize the predicted result using the cross attention fusion module:
+
+```bash
+python src/__main__.py -d /path/to/refcocog -i 0 -m attention -e
+```
+
 ## Project goal
 Visual grounding involves linking language and perception by grounding
 linguistic symbols in the visual world. The goal of this assignment is to build,
