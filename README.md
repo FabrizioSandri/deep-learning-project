@@ -11,19 +11,19 @@ you plan to use the Baseline module, which is based on Yolo, you'll need to
 install its dependencies as well.
 
 To install the CLIP dependencies, run the following commands:
-```
+```bash
 $ pip install ftfy regex tqdm torchmetrics torchvision
 $ pip install git+https://github.com/openai/CLIP.git
 ```
 
 To install the Yolo dependencies, use the following command:
-```
+```bash
 $ pip install -U ultralytics
 ```
 
 ## Usage
 To use the ClipRPN framework for visual grounding on the RefCOCOg dataset, follow the instructions below:
-```
+```bash
 usage: __main__.py [-h] -d PATH [-i ID] [-m {baseline,concatenation,attention}] [-b BATCH_SIZE] [-e] [-t NUM_EPOCHS]
 
 options:
