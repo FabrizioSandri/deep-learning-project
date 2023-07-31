@@ -22,7 +22,7 @@ $ pip install -U ultralytics
 ```
 
 ## Usage
-To utilize the ClipRPN framework for visual grounding on the RefCOCOg dataset, follow the instructions below:
+To use the ClipRPN framework for visual grounding on the RefCOCOg dataset, follow the instructions below:
 ```
 usage: __main__.py [-h] -d PATH [-i ID] [-m {baseline,concatenation,attention}] [-b BATCH_SIZE] [-e] [-t NUM_EPOCHS]
 
@@ -65,7 +65,7 @@ python src/__main__.py -d /path/to/refcocog -m attention -e
 python src/__main__.py -d /path/to/refcocog -i 0 -m attention -e
 ```
 
-## Project goal
+## The goal of the project
 Visual grounding involves linking language and perception by grounding
 linguistic symbols in the visual world. The goal of this assignment is to build,
 fine-tune, and evaluate a deep learning framework that can perform visual
@@ -79,8 +79,8 @@ understanding for the visual grounding task. The objective is to fine-tune CLIP
 specifically for visual grounding, which requires predicting bounding boxes in
 images corresponding to the entities described in textual descriptions.
 
-## Dataset
-The visual grounding task utilizes the RefCOCOg dataset, a variant of the
+#### The Dataset
+This visual grounding task utilizes the RefCOCOg dataset, a variant of the
 Referring Expression Generation (REG) dataset. It consists of approximately
 25,799 images, each with an average of 3.7 referring expressions. The dataset
 contains appearance-based descriptions independent of viewer perspective, making
@@ -88,7 +88,7 @@ it suitable for visual grounding. Accurate bounding boxes need to be generated
 around the referred objects in the images, considering the context and visual
 properties.
 
-## ClipRPN
+#### Our solution: ClipRPN
 In the following diagram we present a high-level representation of our proposed
 framework. The architecture begins by converting an image and a textual
 description into a feature map and text embedding. This is achieved using the
@@ -100,3 +100,7 @@ to generate region proposals that are conditioned on the textual description.
 The model returns the region with the highest score as the final outcome.
 
 ![Architecture](./notebooks/figures/our_architecture.png)
+
+To gain a comprehensive understanding of the suggested approach and its entire
+process, please refer to the Jupyter notebook accompanying this repository:
+[/notebooks/report.ipynb](/notebooks/report.ipynb).
