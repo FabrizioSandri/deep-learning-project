@@ -1,4 +1,5 @@
 # ClipRPN - Deep Learning Project
+[[Notebook]](/notebooks/report.ipynb)
 
 This repository contains the implementation of ClipRPN, a visual grounding
 framework developed as a project for the Deep Learning course at the University
